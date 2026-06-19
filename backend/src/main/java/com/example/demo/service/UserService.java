@@ -26,7 +26,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         // Assign a default role if none provided
-        user.setRole(dto.getRole() != null ? dto.getRole() : "USER");
+        user.setRole(dto.getRole() != null ? dto.getRole() : "ROLE_USER");
 
         userRepository.save(user);
     }

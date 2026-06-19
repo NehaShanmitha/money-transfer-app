@@ -19,10 +19,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+        // Ensure that if the DB contains "USER", it converts cleanly to a GrantedAuthority role mapping
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
-                .password(user.getPassword()) // This must be encoded!
-                .roles(user.getRole())
+                .password(user.getPassword())
+                .roles(user.getRole().replace("ROLE_", "")) // Cleans up strings like "ROLE_USER" down to expected tokens
                 .build();
     }
 }
+
+
