@@ -49,7 +49,7 @@ logout(): void {
     return this.http.post<any>(registerUrl, { 
       username, 
       password,
-      role: 'ADMIN' // Optional: depending on your DTO
+      //role: 'ADMIN' // Optional: depending on your DTO
     });
   }
 

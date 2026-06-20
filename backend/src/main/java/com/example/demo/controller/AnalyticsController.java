@@ -9,13 +9,13 @@ import java.util.*;
 @CrossOrigin(origins = "http://localhost:4200")
 public class AnalyticsController {
 
-    private final String snowflakeUrl = "jdbc:snowflake://BEAFINV-FHC86386.snowflakecomputing.com/?db=MONEY_DB&schema=ANALYTICS&warehouse=COMPUTE_WH&role=ACCOUNTADMIN";
+    private final String snowflakeUrl = "jdbc:snowflake://pyfxlle-cgc84412.snowflakecomputing.com/?db=MONEY_DB&schema=ANALYTICS&warehouse=COMPUTE_WH&role=ACCOUNTADMIN";
 
     @GetMapping("/stats")
     public Map<String, Object> getDashboardStats() throws Exception {
         Properties properties = new Properties();
-        properties.put("user", "Nisha");
-        properties.put("password", "Snowflake@Nisha123");
+        properties.put("user", "Neha");
+        properties.put("password", "Snowflake@Neha123");
         properties.put("role", "ACCOUNTADMIN");
 
         try (Connection conn = DriverManager.getConnection(snowflakeUrl, properties);

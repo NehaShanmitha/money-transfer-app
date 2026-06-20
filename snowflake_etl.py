@@ -1,22 +1,33 @@
 import pymysql
 import snowflake.connector
-from snowflake.connector.pandas_tools import write_pandas
+from snowflake.connector.pandas_tools import pd_writer
 import pandas as pd
 from sqlalchemy import create_engine
 import datetime
+from urllib.parse import quote_plus
 
 # --- CONFIGURATION ---
-MYSQL_URI = "mysql+pymysql://root:<PASSWORD>@127.0.0.1/money_db"
+password = quote_plus("Cloud@123$")
+MYSQL_URI = f"mysql+pymysql://root:{password}@127.0.0.1/money_db"
 
+# Keep this dictionary if needed, but we will use the URI for SQLAlchemy
 SNOWFLAKE_CONFIG = {
-    'user': 'User',
-    'password': 'Password',
-    'account': 'accound_identifier',
+    'user': 'Neha',
+    'password': 'Snowflake@Neha123',
+    'account': 'pyfxlle-cgc84412',
     'warehouse': 'COMPUTE_WH',
     'database': 'MONEY_DB',
     'schema': 'ANALYTICS',
     'role': 'ACCOUNTADMIN'
 }
+
+# Construct the Snowflake SQLAlchemy URI
+sf_password = quote_plus(SNOWFLAKE_CONFIG['password'])
+SNOWFLAKE_URI = (
+    f"snowflake://{SNOWFLAKE_CONFIG['user']}:{sf_password}@{SNOWFLAKE_CONFIG['account']}/"
+    f"{SNOWFLAKE_CONFIG['database']}/{SNOWFLAKE_CONFIG['schema']}?"
+    f"warehouse={SNOWFLAKE_CONFIG['warehouse']}&role={SNOWFLAKE_CONFIG['role']}"
+)
 
 def get_col(df, options):
     for opt in options:
@@ -70,14 +81,11 @@ def run_etl():
         if df_trans['CREATED_ON'].dt.tz is not None:
             df_trans['CREATED_ON'] = df_trans['CREATED_ON'].dt.tz_localize(None)
         
-        # Add DATE_KEY for analytics (as DATE type, not datetime)
+        # Add DATE_KEY for analytics
         df_trans['DATE_KEY'] = df_trans['CREATED_ON'].dt.date
         
-        # CRITICAL FIX: Convert datetime64[ns] to object dtype with proper timestamp format
-        # This ensures write_pandas recognizes it as a timestamp, not a number
+        # Convert to string and back to datetime to normalize formats
         df_trans['CREATED_ON'] = df_trans['CREATED_ON'].dt.strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Convert back to datetime so Snowflake recognizes it properly
         df_trans['CREATED_ON'] = pd.to_datetime(df_trans['CREATED_ON'])
 
         # Ensure all columns are uppercase
@@ -86,8 +94,6 @@ def run_etl():
         df_trans.columns = [x.upper() for x in df_trans.columns]
         
         print(f"✅ Transformation complete")
-        print(f"   CREATED_ON dtype: {df_trans['CREATED_ON'].dtype}")
-        print(f"   Sample values: {df_trans['CREATED_ON'].head().tolist()}")
             
     except Exception as e:
         print(f"❌ Transformation Error: {e}")
@@ -97,20 +103,39 @@ def run_etl():
 
     print("--- 3. Loading to Snowflake ---")
     try:
-        ctx = snowflake.connector.connect(**SNOWFLAKE_CONFIG)
+        # FIX: Create a SQLAlchemy Engine instead of a raw DBAPI connection
+        sf_engine = create_engine(SNOWFLAKE_URI)
         
-        print("Uploading DIM_USERS...")
-        write_pandas(ctx, df_users, 'DIM_USERS', overwrite=True)
-        
-        print("Uploading DIM_ACCOUNTS...")
-        write_pandas(ctx, df_accounts, 'DIM_ACCOUNTS', overwrite=True)
-        
-        print("Uploading FACT_TRANSACTIONS...")
-        # Use auto_create_table=True to let Snowflake infer types
-        write_pandas(ctx, df_trans, 'FACT_TRANSACTIONS', overwrite=True, auto_create_table=True)
-        
+        # Use a connection context manager
+        with sf_engine.connect() as ctx:
+            print("Uploading DIM_USERS...")
+            df_users.to_sql(
+                "dim_users",  # SQLAlchemy handles lowercase names better or matches your schema
+                ctx,
+                index=False,
+                if_exists='append', # generic chunk handler strategy
+                method=pd_writer
+            )
+            
+            print("Uploading DIM_ACCOUNTS...")
+            df_accounts.to_sql(
+                "dim_accounts",
+                ctx,
+                index=False,
+                if_exists='append',
+                method=pd_writer
+            )
+
+            print("Uploading FACT_TRANSACTIONS...")
+            df_trans.to_sql(
+                "fact_transactions",
+                ctx,
+                index=False,
+                if_exists='append',
+                method=pd_writer
+            )
+ 
         print("🚀 SUCCESS: Snowflake Data Warehouse updated!")
-        ctx.close()
 
     except Exception as e:
         print(f"❌ Snowflake Error: {e}")
