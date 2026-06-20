@@ -1,0 +1,165 @@
+.main-toolbar {
+  background: #1a1a2e;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-left: 8px;
+}
+
+.rewards-container {
+  max-width: 800px;
+  margin: 32px auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.center-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  color: #666;
+}
+
+.rewards-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Points Hero Card */
+.points-hero {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: white;
+  border-radius: 16px !important;
+  text-align: center;
+  padding: 12px;
+}
+
+.points-label {
+  font-size: 14px;
+  opacity: 0.75;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.points-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 56px;
+  font-weight: 700;
+  color: #f0c040;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.star-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #f0c040;
+}
+
+.points-subtitle {
+  font-size: 13px;
+  opacity: 0.65;
+}
+
+/* Info Card */
+.info-card {
+  border-radius: 12px !important;
+  border-left: 4px solid #1a1a2e;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #444;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.info-row mat-icon {
+  color: #1a1a2e;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* History Card */
+.history-card {
+  border-radius: 12px !important;
+}
+
+.reward-table {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.txn-id {
+  font-family: monospace;
+  font-size: 13px;
+  color: #555;
+}
+
+.points-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff8e1;
+  color: #f57f17;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+.chip-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.empty-history {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  color: #999;
+  gap: 10px;
+}
+
+.empty-history mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.huge-icon {
+  font-size: 56px;
+  width: 56px;
+  height: 56px;
+}
+
+.warn { color: #e53935; }
+
+th.mat-header-cell {
+  font-weight: 700;
+  color: #333;
+}

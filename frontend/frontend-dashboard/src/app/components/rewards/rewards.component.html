@@ -1,0 +1,99 @@
+<mat-toolbar class="main-toolbar">
+  <button mat-icon-button (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <div class="brand">
+    <mat-icon class="logo-icon">stars</mat-icon>
+    <span>MY REWARDS</span>
+  </div>
+</mat-toolbar>
+
+<div class="rewards-container">
+
+  <!-- Loading -->
+  <div class="center-state" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading your rewards...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="center-state" *ngIf="error && !loading">
+    <mat-icon class="huge-icon warn">error_outline</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-flat-button color="primary" (click)="loadRewards()">Retry</button>
+  </div>
+
+  <div class="rewards-content" *ngIf="!loading && !error">
+
+    <!-- Points Summary Card -->
+    <mat-card class="points-hero">
+      <mat-card-content>
+        <div class="points-label">Total Reward Points</div>
+        <div class="points-value">
+          <mat-icon class="star-icon">stars</mat-icon>
+          {{ totalPoints }}
+        </div>
+        <div class="points-subtitle">
+          Earned from eligible transfers above ₹100
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- How it works -->
+    <mat-card class="info-card">
+      <mat-card-content>
+        <div class="info-row">
+          <mat-icon>info_outline</mat-icon>
+          <span>You earn <strong>1 point per ₹100</strong> transferred to another user. Points are awarded instantly on successful transfers.</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- History Table -->
+    <mat-card class="history-card">
+      <mat-card-header>
+        <mat-card-title>Reward History</mat-card-title>
+        <mat-card-subtitle>{{ history.length }} reward(s) earned</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+
+        <div class="empty-history" *ngIf="history.length === 0">
+          <mat-icon>redeem</mat-icon>
+          <p>No rewards yet. Make a transfer above ₹100 to start earning!</p>
+        </div>
+
+        <table mat-table [dataSource]="history" class="reward-table" *ngIf="history.length > 0">
+
+          <ng-container matColumnDef="transactionId">
+            <th mat-header-cell *matHeaderCellDef>Transaction ID</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="txn-id">{{ row.transactionId }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="pointsEarned">
+            <th mat-header-cell *matHeaderCellDef>Points Earned</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="points-chip">
+                <mat-icon class="chip-icon">stars</mat-icon>
+                {{ row.pointsEarned }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="createdOn">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.createdOn | date:'dd MMM yyyy, h:mm a' }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+</div>

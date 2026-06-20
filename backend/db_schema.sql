@@ -4,9 +4,10 @@ USE money_db;
 
 -- 2. Drop existing tables in reverse order of dependency
 SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS reward_logs;
 DROP TABLE IF EXISTS transaction_logs;
 DROP TABLE IF EXISTS accounts;
-DROP TABLE IF EXISTS users;
+--DROP TABLE IF EXISTS users;
 SET FOREIGN_KEY_CHECKS = 1;
 
 ---
@@ -51,9 +52,25 @@ CREATE TABLE transaction_logs (
     CONSTRAINT fk_to_account FOREIGN KEY (toAccountId) REFERENCES accounts(id)
 ) ENGINE=InnoDB;
 
+-- Reward Logs Table
+CREATE TABLE IF NOT EXISTS reward_logs (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT NOT NULL,
+    transaction_id VARCHAR(64) NOT NULL,
+    points_earned  INT NOT NULL,
+    created_on  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_reward_user
+        FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_reward_transaction
+        FOREIGN KEY (transaction_id) REFERENCES transaction_logs(id),
+    CONSTRAINT uq_reward_transaction
+        UNIQUE (transaction_id)          -- one reward per transaction
+) ENGINE=InnoDB;
+
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE transaction_logs;
 TRUNCATE TABLE accounts;
+TRUNCATE TABLE reward_logs;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Set the starting ID for real-world look

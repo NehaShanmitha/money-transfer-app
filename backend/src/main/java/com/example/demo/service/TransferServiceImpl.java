@@ -8,6 +8,7 @@ import com.example.demo.enums.TransactionStatus;
 import com.example.demo.exception.*;
 import com.example.demo.repository.AccountRepo;
 import com.example.demo.repository.TransactionLogRepo;
+import com.example.demo.service.RewardService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,6 +27,7 @@ public class TransferServiceImpl implements TransferService {
 
     private final AccountRepo accountRepo;
     private final TransactionLogRepo transactionRepo;
+    private final RewardService rewardService;
 
     @Override
     @Transactional(noRollbackFor = {InsufficientBalanceException.class, AccountNotFoundException.class})
@@ -135,6 +137,14 @@ public class TransferServiceImpl implements TransferService {
         transactionLog.setStatus(TransactionStatus.SUCCESS);
         transactionLog.setIdempotencyKey(request.getIdempotencyKey());
         transactionRepo.save(transactionLog);
+
+        try {
+            rewardService.processRewardForTransaction(transactionLog);
+        } catch (Exception ex) {
+            // Reward failure must NEVER affect the transfer outcome
+            logger.error("Reward processing failed for transaction {}: {}",
+                    transactionLog.getId(), ex.getMessage());
+        }
 
         logger.info("Transfer completed successfully: {}", transactionLog.getId());
         TransferResponse transferResponse = new TransferResponse();

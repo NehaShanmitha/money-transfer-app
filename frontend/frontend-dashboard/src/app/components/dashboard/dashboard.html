@@ -186,6 +186,10 @@
             <div class="icon-box details"><mat-icon>manage_accounts</mat-icon></div>
             <span>Account Details</span>
           </div>
+          <div class="action-item" (click)="viewRewards()">
+            <div class="icon-box rewards"><mat-icon>stars</mat-icon></div>
+            <span>Rewards · {{ totalPoints }} pts</span>
+          </div>
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ import { MatTabsModule } from '@angular/material/tabs'; // Added
 import { AuthService } from '../../services/auth.service';
 import { AccountService } from '../../services/account.service';
 import { AccountResponse } from '../../models/account.model';
+import { RewardService } from '../../services/reward.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -33,10 +34,12 @@ export class DashboardComponent implements OnInit {
   selectedAccount: AccountResponse | null = null; // Renamed for clarity
   loading = true;
   error = '';
+  totalPoints = 0;
 
   constructor(
     private authService: AuthService,
     private accountService: AccountService,
+    private rewardService: RewardService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -55,10 +58,20 @@ export class DashboardComponent implements OnInit {
     this.accountService.getMyAccounts().subscribe({
       next: (data) => {
         this.accounts = data;
-        // Default to the first VISIBLE account instead of just the first account
         if (this.visibleAccounts.length > 0) {
           this.selectedAccount = this.visibleAccounts[0];
         }
+        // Load reward points alongside account data
+        this.rewardService.getMyPoints().subscribe({
+          next: (summary) => {
+            this.totalPoints = summary.totalPoints;
+            this.cdr.detectChanges();
+          },
+          error: () => {
+            // Non-critical — don't block dashboard if rewards fail
+            this.totalPoints = 0;
+          }
+        });
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -82,6 +95,10 @@ export class DashboardComponent implements OnInit {
 
   viewBalance(id: number): void {
     this.router.navigate(['/balance', id]);
+  }
+
+  viewRewards(): void {
+    this.router.navigate(['/rewards']);
   }
 
   doTransfer(id: number): void {

@@ -8,6 +8,7 @@ import { Login } from './components/login/login';
 import { Register } from './components/register/register';
 import { TransactionHistory } from './components/transaction-history/transaction-history';
 import { AdminDashboard } from './components/admin-dashboard/admin-dashboard';
+import { RewardsComponent } from './components/rewards/rewards.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -42,6 +43,11 @@ export const routes: Routes = [
     path: 'admin-dashboard', 
     component: AdminDashboard, 
     canActivate: [AuthGuard] 
+  },
+  {
+    path: 'rewards',
+    component: RewardsComponent,
+    canActivate: [AuthGuard]
   },
   { path: '**', redirectTo: '/login' }
 ];
