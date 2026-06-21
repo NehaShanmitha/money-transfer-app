@@ -17,6 +17,7 @@ import { Location } from '@angular/common'; // Import for back button
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { AuthService } from '../../services/auth.service';
 import { TransferResult } from '../../services/transfer-service';
+import { RewardService } from '../../services/reward.service';
 
 @Component({
   selector: 'app-transfer',
@@ -46,11 +47,13 @@ export class TransferComponent implements OnInit {
   toAccountValid = false;
   transferResult: any = null;   // holds the response after success
   resultVisible = false;        // controls showing the result panel
+  private pointsBefore = 0;
 
   constructor(
     private fb: FormBuilder, 
     private transferService: TransferService, 
     private cdr: ChangeDetectorRef,
+    private rewardService: RewardService,
     private authService: AuthService, // Inject your Auth Service
     private location: Location,
     private snackBar: MatSnackBar // Inject SnackBar
@@ -76,8 +79,7 @@ loadUserAccounts() {
   this.loading = true;
   this.transferService.getMyAccounts().subscribe({
     next: (data) => {
-      // Your API returns a List<AccountResponse>, so 'data' is the array
-      this.accounts = data; 
+      this.accounts = data;
       this.loading = false;
       this.cdr.detectChanges();
     },
@@ -137,6 +139,12 @@ onTransfer() {
 
   const { fromAccountId, toAccountId, amount } = this.transferForm.getRawValue();
 
+  // Snapshot points before transfer
+  this.rewardService.getMyPoints().subscribe({
+    next: (summary) => { this.pointsBefore = summary.totalPoints ?? 0; },
+    error: () => { this.pointsBefore = 0; }
+  });
+
   this.transferService.executeTransfer(fromAccountId, toAccountId, amount)
     .pipe(
       finalize(() => {
@@ -145,16 +153,32 @@ onTransfer() {
       })
     )
     .subscribe({
-      next: (res: TransferResult) => {
-        this.transferResult = {
-          ...res,
-          resultType: 'success',
-          pointsEarned: res.pointsEarned ?? 0   // no coercion needed — properly typed now
-        };
-        this.resultVisible = true;
+      next: (res) => {
+        // After success, fetch updated points and diff
+        this.rewardService.getMyPoints().subscribe({
+          next: (summary) => {
+            const pointsJustEarned = (summary.totalPoints ?? 0) - this.pointsBefore;
+            this.transferResult = {
+              ...res,
+              resultType: 'success',
+              pointsEarned: pointsJustEarned > 0 ? pointsJustEarned : 0
+            };
+            this.resultVisible = true;
+            this.cdr.detectChanges();
+          },
+          error: () => {
+            // If points fetch fails, still show success panel without points
+            this.transferResult = {
+              ...res,
+              resultType: 'success',
+              pointsEarned: 0
+            };
+            this.resultVisible = true;
+            this.cdr.detectChanges();
+          }
+        });
         this.clearForm();
         this.loadUserAccounts();
-        this.cdr.detectChanges();
       },
       error: (err) => {
         const errorMsg =
