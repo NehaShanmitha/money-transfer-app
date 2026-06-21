@@ -372,3 +372,120 @@
   background: linear-gradient(135deg, #f57f17, #f0c040);
   color: white;
 }
+
+/* ── Action Grid: 3 columns, rewards spans full width in row 2 ── */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+/* Row 2: Account Details takes 1 col, Rewards banner takes 2 cols */
+.action-grid .action-item:nth-child(4) {
+  grid-column: span 1;
+}
+
+.action-grid .action-item.rewards-banner {
+  grid-column: span 2;
+}
+
+/* Base action tile */
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 16px;
+  padding: 20px 12px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #444;
+  text-align: center;
+  border: 1.5px solid transparent;
+}
+
+.action-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+/* Icon boxes */
+.icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.icon-box.transfer  { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+.icon-box.history   { background: linear-gradient(135deg, #5c6bc0, #3949ab); }
+.icon-box.balance   { background: linear-gradient(135deg, #00897b, #00695c); }
+.icon-box.details   { background: linear-gradient(135deg, #8e44ad, #6c3483); }
+.icon-box.rewards   { background: linear-gradient(135deg, #f57f17, #f0c040); }
+
+/* ── Rewards Banner tile ───────────────────────────────────────── */
+.rewards-banner {
+  flex-direction: row;      /* override column */
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  border: 1.5px solid #f0c040;
+  background: linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);
+}
+
+.rewards-banner:hover {
+  border-color: #f57f17;
+  background: linear-gradient(135deg, #fff8e1 0%, #fef3c7 100%);
+}
+
+.rewards-banner-inner {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 16px 20px;
+  gap: 16px;
+}
+
+.rewards-left {
+  flex-shrink: 0;
+}
+
+.rewards-center {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 2px;
+  text-align: left;
+}
+
+.rewards-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #7b4f00;
+}
+
+.rewards-pts {
+  font-size: 20px;
+  font-weight: 800;
+  color: #f57f17;
+  line-height: 1.2;
+}
+
+.rewards-cta {
+  font-size: 11px;
+  color: #a0670a;
+  font-weight: 500;
+}
+
+.rewards-arrow {
+  color: #f57f17;
+  flex-shrink: 0;
+}

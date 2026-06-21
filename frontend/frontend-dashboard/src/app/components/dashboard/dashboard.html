@@ -157,7 +157,7 @@
 
     <div class="account-view" *ngIf="selectedAccount">
       <div class="main-stats-grid">
-        
+
         <mat-card class="balance-hero">
           <mat-card-content>
             <div class="label">Available Balance</div>
@@ -170,6 +170,7 @@
         </mat-card>
 
         <div class="action-grid">
+          <!-- Row 1: 3 primary actions -->
           <div class="action-item" (click)="doTransfer(selectedAccount.id)">
             <div class="icon-box transfer"><mat-icon>send</mat-icon></div>
             <span>Transfer</span>
@@ -182,15 +183,31 @@
             <div class="icon-box balance"><mat-icon>account_balance_wallet</mat-icon></div>
             <span>Balance</span>
           </div>
+
+          <!-- Row 2: Account Details + Rewards banner side by side -->
           <div class="action-item" (click)="viewAccountDetails(selectedAccount.id)">
             <div class="icon-box details"><mat-icon>manage_accounts</mat-icon></div>
             <span>Account Details</span>
           </div>
-          <div class="action-item" (click)="viewRewards()">
-            <div class="icon-box rewards"><mat-icon>stars</mat-icon></div>
-            <span>Rewards · {{ totalPoints }} pts</span>
+
+          <div class="action-item rewards-banner" (click)="viewRewards()">
+            <div class="rewards-banner-inner">
+              <div class="rewards-left">
+                <div class="icon-box rewards"><mat-icon>stars</mat-icon></div>
+              </div>
+              <div class="rewards-center">
+                <span class="rewards-title">My Rewards</span>
+                <span class="rewards-pts">{{ totalPoints }} pts earned</span>
+                <span class="rewards-cta" *ngIf="totalPoints === 0">Transfer ₹100+ to earn!</span>
+                <span class="rewards-cta" *ngIf="totalPoints > 0">
+                  {{ 10 - (totalPoints % 10) }} pts to next milestone 🎯
+                </span>
+              </div>
+              <mat-icon class="rewards-arrow">chevron_right</mat-icon>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>

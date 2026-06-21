@@ -36,6 +36,26 @@
         <div class="points-subtitle">
           Earned from eligible transfers above ₹100
         </div>
+
+        <!-- Milestone progress bar -->
+        <div class="milestone-section">
+          <div class="milestone-track">
+            <div class="milestone-fill"
+                 [style.width.%]="(totalPoints % 10) * 10">
+            </div>
+          </div>
+          <div class="milestone-labels">
+            <span>{{ totalPoints - (totalPoints % 10) }} pts</span>
+            <span *ngIf="totalPoints % 10 !== 0" class="milestone-hint">
+              {{ 10 - (totalPoints % 10) }} more pts to next milestone 🎯
+            </span>
+            <span *ngIf="totalPoints % 10 === 0 && totalPoints > 0" class="milestone-hit">
+              🎉 Milestone reached!
+            </span>
+            <span>{{ totalPoints - (totalPoints % 10) + 10 }} pts</span>
+          </div>
+        </div>
+
       </mat-card-content>
     </mat-card>
 
