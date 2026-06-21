@@ -397,3 +397,48 @@ mat-card-title {
   flex-shrink: 0;
   margin-top: 1px;
 }
+
+/* Failure header */
+.result-header.failure {
+  background: linear-gradient(135deg, #b71c1c, #c62828);
+}
+
+.amount-value.failed-amount {
+  color: #c62828;
+}
+
+.status-badge.failure {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* Failure reason */
+.failure-reason-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff5f5;
+  border: 1.5px solid #ffcdd2;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #7f0000;
+}
+
+.failure-reason-row mat-icon {
+  color: #c62828;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.reason-label {
+  font-weight: 700;
+  font-size: 12px;
+  color: #c62828;
+  margin-bottom: 3px;
+}
+
+.reason-text {
+  color: #7f0000;
+  line-height: 1.5;
+}

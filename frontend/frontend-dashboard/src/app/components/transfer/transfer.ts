@@ -145,20 +145,34 @@ loadUserAccounts() {
       )
       .subscribe({
         next: (res) => {
-          this.transferResult = res;
+          console.log('Transfer response:', res); // temporary — remove after confirming pointsEarned value
+          this.transferResult = {
+            ...res,
+            resultType: 'success',
+            // Explicit fallback: coerce to number in case JSON deserialization gives undefined
+            pointsEarned: Number(res.pointsEarned) || 0
+          };
           this.resultVisible = true;
           this.clearForm();
           this.loadUserAccounts();
           this.cdr.detectChanges();
         },
         error: (err) => {
-          let errorMsg = 'An unexpected error occurred.';
-          if (err.status === 404 || err.error?.message?.includes('not found')) {
-            errorMsg = 'Recipient account ID not found.';
-          } else {
-            errorMsg = err.error?.message || err.error || 'Transfer failed.';
-          }
-          this.showSnackbar(errorMsg, 'error');
+          const errorMsg =
+            (err.status === 404 || err.error?.message?.includes('not found'))
+              ? 'Recipient account ID not found.'
+              : err.error?.message || err.error || 'Transfer failed.';
+
+          this.transferResult = {
+            resultType: 'failure',
+            fromAccountId,
+            toAccountId,
+            amount,
+            reason: errorMsg,
+            status: 'FAILED'
+          };
+          this.resultVisible = true;
+          this.cdr.detectChanges();
         }
       });
   }

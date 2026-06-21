@@ -90,7 +90,8 @@
   <!-- ── Transaction Result Panel ───────────────────────────── -->
   <div class="result-panel" *ngIf="resultVisible && transferResult">
 
-    <div class="result-header success">
+    <!-- SUCCESS header -->
+    <div class="result-header success" *ngIf="transferResult.resultType === 'success'">
       <div class="result-icon-circle">
         <mat-icon>check_circle</mat-icon>
       </div>
@@ -103,10 +104,29 @@
       </button>
     </div>
 
+    <!-- FAILURE header -->
+    <div class="result-header failure" *ngIf="transferResult.resultType === 'failure'">
+      <div class="result-icon-circle">
+        <mat-icon>cancel</mat-icon>
+      </div>
+      <div class="result-header-text">
+        <div class="result-title">Transfer Failed</div>
+        <div class="result-txn-id">{{ transferResult.status }}</div>
+      </div>
+      <button mat-icon-button class="dismiss-btn" (click)="dismissResult()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
     <div class="result-body">
+
+      <!-- Common rows for both -->
       <div class="result-row">
-        <span class="result-label">Amount Sent</span>
-        <span class="result-value amount-value">₹{{ transferResult.amount | number:'1.2-2' }}</span>
+        <span class="result-label">Amount</span>
+        <span class="result-value amount-value"
+              [class.failed-amount]="transferResult.resultType === 'failure'">
+          ₹{{ transferResult.amount | number:'1.2-2' }}
+        </span>
       </div>
       <div class="result-row">
         <span class="result-label">From Account</span>
@@ -118,23 +138,36 @@
       </div>
       <div class="result-row">
         <span class="result-label">Status</span>
-        <span class="result-value status-badge success">
-          <mat-icon>verified</mat-icon>
+        <span class="result-value status-badge"
+              [class.success]="transferResult.resultType === 'success'"
+              [class.failure]="transferResult.resultType === 'failure'">
+          <mat-icon>{{ transferResult.resultType === 'success' ? 'verified' : 'error_outline' }}</mat-icon>
           {{ transferResult.status }}
         </span>
       </div>
 
-      <!-- Reward points row — only shown if points were earned -->
       <div class="result-divider"></div>
 
-      <div class="reward-result-row" *ngIf="transferResult.pointsEarned > 0">
-        <div class="reward-earned-badge">
-          <mat-icon>stars</mat-icon>
-          <span>You earned <strong>{{ transferResult.pointsEarned }} reward point{{ transferResult.pointsEarned > 1 ? 's' : '' }}</strong> on this transfer!</span>
+      <!-- FAILURE reason -->
+      <div class="failure-reason-row" *ngIf="transferResult.resultType === 'failure'">
+        <mat-icon>info_outline</mat-icon>
+        <div>
+          <div class="reason-label">Reason for Failure</div>
+          <div class="reason-text">{{ transferResult.reason }}</div>
         </div>
       </div>
 
-      <div class="reward-ineligible-row" *ngIf="transferResult.pointsEarned === 0">
+      <!-- SUCCESS: reward earned -->
+      <div class="reward-earned-badge"
+           *ngIf="transferResult.resultType === 'success' && transferResult.pointsEarned > 0">
+        <mat-icon>stars</mat-icon>
+        <span>You earned <strong>{{ transferResult.pointsEarned }}
+          reward point{{ transferResult.pointsEarned > 1 ? 's' : '' }}</strong> on this transfer!</span>
+      </div>
+
+      <!-- SUCCESS: reward ineligible -->
+      <div class="reward-ineligible-row"
+           *ngIf="transferResult.resultType === 'success' && transferResult.pointsEarned === 0">
         <mat-icon>info_outline</mat-icon>
         <span>No reward points — transfer must be above ₹100 to another user to earn points.</span>
       </div>
