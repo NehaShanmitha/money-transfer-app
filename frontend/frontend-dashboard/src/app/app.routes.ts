@@ -8,7 +8,7 @@ import { Login } from './components/login/login';
 import { Register } from './components/register/register';
 import { TransactionHistory } from './components/transaction-history/transaction-history';
 import { AdminDashboard } from './components/admin-dashboard/admin-dashboard';
-import { RewardsComponent } from './components/rewards/rewards.component';
+import { RewardsComponent } from './components/rewards/rewards';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
