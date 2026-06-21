@@ -12,7 +12,7 @@ public interface RewardService {
      * and persists a RewardLog if eligible.
      * Called after a successful transfer.
      */
-    void processRewardForTransaction(TransactionLog transactionLog);
+    int processRewardForTransaction(TransactionLog transactionLog);
 
     /**
      * Returns all reward entries for the given user.

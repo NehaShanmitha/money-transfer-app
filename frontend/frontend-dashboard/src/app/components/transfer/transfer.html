@@ -87,6 +87,61 @@
     </mat-card-content>
   </mat-card>
 
+  <!-- ── Transaction Result Panel ───────────────────────────── -->
+  <div class="result-panel" *ngIf="resultVisible && transferResult">
+
+    <div class="result-header success">
+      <div class="result-icon-circle">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="result-header-text">
+        <div class="result-title">Transfer Successful</div>
+        <div class="result-txn-id">{{ transferResult.id }}</div>
+      </div>
+      <button mat-icon-button class="dismiss-btn" (click)="dismissResult()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="result-body">
+      <div class="result-row">
+        <span class="result-label">Amount Sent</span>
+        <span class="result-value amount-value">₹{{ transferResult.amount | number:'1.2-2' }}</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">From Account</span>
+        <span class="result-value">#{{ transferResult.fromAccountId }}</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">To Account</span>
+        <span class="result-value">#{{ transferResult.toAccountId }}</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Status</span>
+        <span class="result-value status-badge success">
+          <mat-icon>verified</mat-icon>
+          {{ transferResult.status }}
+        </span>
+      </div>
+
+      <!-- Reward points row — only shown if points were earned -->
+      <div class="result-divider"></div>
+
+      <div class="reward-result-row" *ngIf="transferResult.pointsEarned > 0">
+        <div class="reward-earned-badge">
+          <mat-icon>stars</mat-icon>
+          <span>You earned <strong>{{ transferResult.pointsEarned }} reward point{{ transferResult.pointsEarned > 1 ? 's' : '' }}</strong> on this transfer!</span>
+        </div>
+      </div>
+
+      <div class="reward-ineligible-row" *ngIf="transferResult.pointsEarned === 0">
+        <mat-icon>info_outline</mat-icon>
+        <span>No reward points — transfer must be above ₹100 to another user to earn points.</span>
+      </div>
+
+    </div>
+  </div>
+
   <footer class="security-footer">
     <mat-icon>shield</mat-icon>
     <span>PCI-DSS Compliant Secure Transfer</span>

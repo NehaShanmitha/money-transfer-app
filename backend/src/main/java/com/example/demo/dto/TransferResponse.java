@@ -27,4 +27,6 @@ public class TransferResponse {
 
     private String message;
 
+    private int pointsEarned;
+
 }

@@ -138,8 +138,9 @@ public class TransferServiceImpl implements TransferService {
         transactionLog.setIdempotencyKey(request.getIdempotencyKey());
         transactionRepo.save(transactionLog);
 
+        int pointsEarned = 0;
         try {
-            rewardService.processRewardForTransaction(transactionLog);
+            pointsEarned = rewardService.processRewardForTransaction(transactionLog);
         } catch (Exception ex) {
             // Reward failure must NEVER affect the transfer outcome
             logger.error("Reward processing failed for transaction {}: {}",
@@ -154,6 +155,7 @@ public class TransferServiceImpl implements TransferService {
         transferResponse.setFromAccountId(request.getFromAccountId());
         transferResponse.setToAccountId(request.getToAccountId());
         transferResponse.setAmount(request.getAmount());
+        transferResponse.setPointsEarned(pointsEarned);
         return transferResponse;
     }
 }

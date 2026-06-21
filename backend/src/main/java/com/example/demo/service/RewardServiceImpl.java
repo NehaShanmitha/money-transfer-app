@@ -30,18 +30,18 @@ public class RewardServiceImpl implements RewardService {
 
     @Override
     @Transactional
-    public void processRewardForTransaction(TransactionLog transactionLog) {
+    public int processRewardForTransaction(TransactionLog transactionLog) {
         // ── Rule 1: Transaction must be SUCCESS ──────────────────────────────
         if (transactionLog.getStatus() != TransactionStatus.SUCCESS) {
-            logger.debug("Reward skipped — transaction {} is not SUCCESS", transactionLog.getId());
-            return;
+                logger.debug("Reward skipped — transaction {} is not SUCCESS", transactionLog.getId());
+                return 0;
         }
 
         // ── Rule 2: Amount must be greater than 100 ──────────────────────────
         if (transactionLog.getAmount().compareTo(REWARD_THRESHOLD) <= 0) {
-            logger.debug("Reward skipped — amount {} is not > 100 for transaction {}",
-                    transactionLog.getAmount(), transactionLog.getId());
-            return;
+                logger.debug("Reward skipped — amount {} is not > 100 for transaction {}",
+                        transactionLog.getAmount(), transactionLog.getId());
+                return 0;
         }
 
         // ── Rules 3 & 4: Sender and receiver must be different users ─────────
@@ -51,16 +51,15 @@ public class RewardServiceImpl implements RewardService {
                 .orElse(null);
 
         if (fromAccount == null || toAccount == null) {
-            logger.warn("Reward skipped — could not load accounts for transaction {}",
-                    transactionLog.getId());
-            return;
+                logger.warn("Reward skipped — could not load accounts for transaction {}",
+                        transactionLog.getId());
+                return 0;
         }
 
-        // Compare owner user IDs — catches self-transfer across accounts of the same user
         if (fromAccount.getOwner().getId() == toAccount.getOwner().getId()) {
-            logger.debug("Reward skipped — self-transfer detected for transaction {}",
-                    transactionLog.getId());
-            return;
+                logger.debug("Reward skipped — self-transfer detected for transaction {}",
+                        transactionLog.getId());
+                return 0;
         }
 
         // ── Calculate points: floor(amount / 100) ───────────────────────────
@@ -69,9 +68,9 @@ public class RewardServiceImpl implements RewardService {
                 .intValue();
 
         if (points <= 0) {
-            logger.debug("Reward skipped — calculated 0 points for transaction {}",
-                    transactionLog.getId());
-            return;
+                logger.debug("Reward skipped — calculated 0 points for transaction {}",
+                        transactionLog.getId());
+                return 0;
         }
 
         // ── Persist the reward ───────────────────────────────────────────────
@@ -84,6 +83,8 @@ public class RewardServiceImpl implements RewardService {
 
         logger.info("Reward granted — {} points to user {} for transaction {}",
                 points, fromAccount.getOwner().getId(), transactionLog.getId());
+
+        return points;
     }
 
     @Override

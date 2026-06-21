@@ -43,6 +43,8 @@ export class TransferComponent implements OnInit {
   accounts: any[] = [];
   loading = false;
   toAccountValid = false;
+  transferResult: any = null;   // holds the response after success
+  resultVisible = false;        // controls showing the result panel
 
   constructor(
     private fb: FormBuilder, 
@@ -125,44 +127,42 @@ loadUserAccounts() {
     }
   }
 
-onTransfer() {
-  if (this.transferForm.invalid) return;
-  
-  this.loading = true;
-  const { fromAccountId, toAccountId, amount } = this.transferForm.getRawValue();
+  onTransfer() {
+    if (this.transferForm.invalid) return;
 
-  this.transferService.executeTransfer(fromAccountId, toAccountId, amount)
-    .pipe(
-      finalize(() => {
-        this.loading = false;
-        this.cdr.detectChanges();
-      })
-    )
-    .subscribe({
-      next: (res) => {
-        this.showSnackbar(`Success! Transfer completed.`, 'success');
-        // Save the current sender ID to reload their balance after reset
-        const lastFrom = fromAccountId;
-        this.clearForm();
-        this.loadUserAccounts();
-      },
-      error: (err) => {
-        let errorMsg = 'An unexpected error occurred.';
-        
-        // Handle specific 404/Not Found logic
-        if (err.status === 404 || err.error?.message?.includes('not found')) {
-          errorMsg = 'Recipient account ID not found.';
-          
-          // --- THE FIX: Clear the form on error ---
-          //this.clearForm(); 
-        } else {
-          errorMsg = err.error?.message || err.error || 'Transfer failed.';
+    this.loading = true;
+    this.transferResult = null;
+    this.resultVisible = false;
+
+    const { fromAccountId, toAccountId, amount } = this.transferForm.getRawValue();
+
+    this.transferService.executeTransfer(fromAccountId, toAccountId, amount)
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (res) => {
+          this.transferResult = res;
+          this.resultVisible = true;
+          this.clearForm();
+          this.loadUserAccounts();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          let errorMsg = 'An unexpected error occurred.';
+          if (err.status === 404 || err.error?.message?.includes('not found')) {
+            errorMsg = 'Recipient account ID not found.';
+          } else {
+            errorMsg = err.error?.message || err.error || 'Transfer failed.';
+          }
+          this.showSnackbar(errorMsg, 'error');
         }
+      });
+  }
 
-        this.showSnackbar(errorMsg, 'error');
-      }
-    });
-}
   showSnackbar(message: string, type: 'success' | 'error') {
     this.snackBar.open(message, 'Close', {
       duration: 5000,
@@ -170,6 +170,11 @@ onTransfer() {
       horizontalPosition: 'end',
       verticalPosition: 'top'
     });
+  }
+
+  dismissResult(): void {
+    this.resultVisible = false;
+    this.transferResult = null;
   }
 
   clearForm() {
