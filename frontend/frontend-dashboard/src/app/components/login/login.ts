@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../services/auth.service'; // Check this path
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-login',
@@ -31,7 +32,8 @@ export class Login {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cd: ChangeDetectorRef
   ) {}
 
   submit(): void {
@@ -57,13 +59,25 @@ export class Login {
         }
       },
       error: (err) => {
-        console.error('Login failed:', err);
-        if (err.error && err.error.message) {
-          this.errorMessage = err.error.message;
-        } else {
-          this.errorMessage = 'Invalid username or password';
+        console.error('Login failed FULL ERROR:', err);
+
+        let message = 'Invalid username or password';
+
+        if (err?.error) {
+          if (typeof err.error === 'string') {
+            message = err.error;
+          } else if (err.error.message) {
+            message = err.error.message;
+          } else if (err.error.error) {
+            message = err.error.error;
+          }
         }
+
+        this.errorMessage = message;
+
         this.authService.logout();
+
+        this.cd.detectChanges(); 
       }
     });
   }
