@@ -16,6 +16,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { Location } from '@angular/common'; // Import for back button
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { AuthService } from '../../services/auth.service';
+import { TransferResult } from '../../services/transfer-service';
 
 @Component({
   selector: 'app-transfer',
@@ -127,55 +128,53 @@ loadUserAccounts() {
     }
   }
 
-  onTransfer() {
-    if (this.transferForm.invalid) return;
+onTransfer() {
+  if (this.transferForm.invalid) return;
 
-    this.loading = true;
-    this.transferResult = null;
-    this.resultVisible = false;
+  this.loading = true;
+  this.transferResult = null;
+  this.resultVisible = false;
 
-    const { fromAccountId, toAccountId, amount } = this.transferForm.getRawValue();
+  const { fromAccountId, toAccountId, amount } = this.transferForm.getRawValue();
 
-    this.transferService.executeTransfer(fromAccountId, toAccountId, amount)
-      .pipe(
-        finalize(() => {
-          this.loading = false;
-          this.cdr.detectChanges();
-        })
-      )
-      .subscribe({
-        next: (res) => {
-          console.log('Transfer response:', res); // temporary — remove after confirming pointsEarned value
-          this.transferResult = {
-            ...res,
-            resultType: 'success',
-            // Explicit fallback: coerce to number in case JSON deserialization gives undefined
-            pointsEarned: Number(res.pointsEarned) || 0
-          };
-          this.resultVisible = true;
-          this.clearForm();
-          this.loadUserAccounts();
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          const errorMsg =
-            (err.status === 404 || err.error?.message?.includes('not found'))
-              ? 'Recipient account ID not found.'
-              : err.error?.message || err.error || 'Transfer failed.';
+  this.transferService.executeTransfer(fromAccountId, toAccountId, amount)
+    .pipe(
+      finalize(() => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      })
+    )
+    .subscribe({
+      next: (res: TransferResult) => {
+        this.transferResult = {
+          ...res,
+          resultType: 'success',
+          pointsEarned: res.pointsEarned ?? 0   // no coercion needed — properly typed now
+        };
+        this.resultVisible = true;
+        this.clearForm();
+        this.loadUserAccounts();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        const errorMsg =
+          (err.status === 404 || err.error?.message?.includes('not found'))
+            ? 'Recipient account ID not found.'
+            : err.error?.message || err.error || 'Transfer failed.';
 
-          this.transferResult = {
-            resultType: 'failure',
-            fromAccountId,
-            toAccountId,
-            amount,
-            reason: errorMsg,
-            status: 'FAILED'
-          };
-          this.resultVisible = true;
-          this.cdr.detectChanges();
-        }
-      });
-  }
+        this.transferResult = {
+          resultType: 'failure',
+          fromAccountId,
+          toAccountId,
+          amount,
+          reason: errorMsg,
+          status: 'FAILED'
+        };
+        this.resultVisible = true;
+        this.cdr.detectChanges();
+      }
+    });
+}
 
   showSnackbar(message: string, type: 'success' | 'error') {
     this.snackBar.open(message, 'Close', {
