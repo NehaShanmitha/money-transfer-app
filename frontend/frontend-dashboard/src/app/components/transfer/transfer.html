@@ -165,7 +165,7 @@
           reward point{{ transferResult.pointsEarned > 1 ? 's' : '' }}</strong> on this transfer!</span>
       </div>
 
-      <!-- SUCCESS: reward ineligible -->
+      <!-- -- -- SUCCESS: reward ineligible   -->
       <div class="reward-ineligible-row"
            *ngIf="transferResult.resultType === 'success' && transferResult.pointsEarned === 0">
         <mat-icon>info_outline</mat-icon>

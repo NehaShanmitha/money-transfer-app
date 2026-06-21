@@ -76,17 +76,15 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- Set the starting ID for real-world look
 ALTER TABLE accounts AUTO_INCREMENT = 1001001001;
 
--- Insert Accounts with the new ID sequence
 INSERT INTO accounts (holder_name, balance, status, version, user_id) VALUES
-('Alice Green', 12500.50, 'ACTIVE', 1, 1), -- ID: 1001001001
-('Alice Green', 450.00,   'ACTIVE', 1, 1), -- ID: 1001001002
-('Bob Smith',   8200.00,  'ACTIVE', 1, 2), -- ID: 1001001003
-('Bob Smith',   0.00,     'CLOSED', 1, 2), -- ID: 1001001004
-('Charlie Vance', 3100.00, 'ACTIVE', 1, 3), -- ID: 1001001005
-('David Miller', 150.00,   'LOCKED', 1, 4), -- ID: 1001001006
-('Emma Clark',   9800.00, 'ACTIVE', 1, 5), -- ID: 1001001007
-('Emma Clark',   12000.00,'ACTIVE', 1, 5); -- ID: 1001001008
-
+ ('Nikhita Shriram', 12500.50, 'ACTIVE', 1, 1), -- ID: 1001001001
+ ('Nikhita Shriram', 450.00,   'ACTIVE', 1, 1), -- ID: 1001001002
+ ('Asvitha Gnanavel',   8200.00,  'ACTIVE', 1, 2), -- ID: 1001001003
+ ('Asvitha Gnanavel',   0.00,     'CLOSED', 1, 2), -- ID: 1001001004
+ ('Augustine Wisely', 3100.00, 'ACTIVE', 1, 3), -- ID: 1001001005
+ ('Shivishun A', 150.00,   'LOCKED', 1, 4), -- ID: 1001001006
+ ('Roshan Krishna',   9800.00, 'ACTIVE', 1, 5), -- ID: 1001001007
+ ('Roshan Krishna',   12000.00,'ACTIVE', 1, 5); -- ID: 1001001008
 
 -- CLEAR OLD LOGS BEFORE RE-SEEDING TO ENSURE CLEAN DATA
 DELETE FROM transaction_logs;
