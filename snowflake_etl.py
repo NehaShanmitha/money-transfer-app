@@ -10,7 +10,6 @@ from urllib.parse import quote_plus
 password = quote_plus("Cloud@123$")
 MYSQL_URI = f"mysql+pymysql://root:{password}@127.0.0.1/money_db"
 
-# Keep this dictionary if needed, but we will use the URI for SQLAlchemy
 SNOWFLAKE_CONFIG = {
     'user': 'Neha',
     'password': 'Snowflake@Neha123',
@@ -21,7 +20,6 @@ SNOWFLAKE_CONFIG = {
     'role': 'ACCOUNTADMIN'
 }
 
-# Construct the Snowflake SQLAlchemy URI
 sf_password = quote_plus(SNOWFLAKE_CONFIG['password'])
 SNOWFLAKE_URI = (
     f"snowflake://{SNOWFLAKE_CONFIG['user']}:{sf_password}@{SNOWFLAKE_CONFIG['account']}/"
@@ -31,42 +29,51 @@ SNOWFLAKE_URI = (
 
 def get_col(df, options):
     for opt in options:
-        if opt in df.columns: 
+        if opt in df.columns:
             return opt
     return None
+
+def normalize_datetime_col(df, col):
+    """Convert a datetime column to timezone-naive, formatted string, then back to datetime."""
+    df[col] = pd.to_datetime(df[col])
+    if df[col].dt.tz is not None:
+        df[col] = df[col].dt.tz_localize(None)
+    df[col] = df[col].dt.strftime('%Y-%m-%d %H:%M:%S')
+    df[col] = pd.to_datetime(df[col])
+    return df
 
 def run_etl():
     print("--- 1. Extracting from MySQL ---")
     try:
         engine = create_engine(MYSQL_URI)
-        df_users_raw = pd.read_sql("SELECT * FROM users", engine)
-        df_accounts_raw = pd.read_sql("SELECT * FROM accounts", engine)
-        df_trans_raw = pd.read_sql("SELECT * FROM transaction_logs", engine)
-        print(f"📊 Data Found: {len(df_users_raw)} Users, {len(df_accounts_raw)} Accounts, {len(df_trans_raw)} Logs")
+        df_users_raw     = pd.read_sql("SELECT * FROM users", engine)
+        df_accounts_raw  = pd.read_sql("SELECT * FROM accounts", engine)
+        df_trans_raw     = pd.read_sql("SELECT * FROM transaction_logs", engine)
+        df_rewards_raw   = pd.read_sql("SELECT * FROM reward_logs", engine)
+        print(f"Data Found: {len(df_users_raw)} Users, {len(df_accounts_raw)} Accounts, "
+              f"{len(df_trans_raw)} Transaction Logs, {len(df_rewards_raw)} Reward Logs")
     except Exception as e:
-        print(f"❌ MySQL Error: {e}")
+        print(f"MySQL Error: {e}")
         return
 
     print("--- 2. Transforming for Snowflake ---")
     try:
-        # DIM_USERS transformation
+        # DIM_USERS
         df_users = df_users_raw[['id', 'username', 'role']].copy()
         df_users.columns = ['USER_ID', 'USERNAME', 'ROLE']
-        
-        # DIM_ACCOUNTS transformation
+
+        # DIM_ACCOUNTS
         h_name = get_col(df_accounts_raw, ['holder_name', 'holderName'])
-        u_id = get_col(df_accounts_raw, ['user_id', 'userId'])
+        u_id   = get_col(df_accounts_raw, ['user_id', 'userId'])
         df_accounts = df_accounts_raw[['id', h_name, 'balance', 'status', u_id]].copy()
         df_accounts.columns = ['ACCOUNT_ID', 'HOLDER_NAME', 'BALANCE', 'STATUS', 'USER_ID']
-        
-        # FACT_TRANSACTIONS transformation
+
+        # FACT_TRANSACTIONS
         f_acc = get_col(df_trans_raw, ['from_account_id', 'fromAccountId'])
         t_acc = get_col(df_trans_raw, ['to_account_id', 'toAccountId'])
-        c_on = get_col(df_trans_raw, ['created_on', 'createdOn'])
+        c_on  = get_col(df_trans_raw, ['created_on', 'createdOn'])
 
         df_trans = df_trans_raw[['id', f_acc, t_acc, 'amount', 'status', c_on]].copy()
-
-        # Rename columns FIRST
         df_trans = df_trans.rename(columns={
             'id': 'TRANSACTION_ID',
             f_acc: 'FROM_ACCOUNT_ID',
@@ -75,73 +82,68 @@ def run_etl():
             'status': 'STATUS',
             c_on: 'CREATED_ON'
         })
-
-        # Convert to datetime and ensure it's timezone-naive
-        df_trans['CREATED_ON'] = pd.to_datetime(df_trans['CREATED_ON'])
-        if df_trans['CREATED_ON'].dt.tz is not None:
-            df_trans['CREATED_ON'] = df_trans['CREATED_ON'].dt.tz_localize(None)
-        
-        # Add DATE_KEY for analytics
-        df_trans['DATE_KEY'] = df_trans['CREATED_ON'].dt.date
-        
-        # Convert to string and back to datetime to normalize formats
-        df_trans['CREATED_ON'] = df_trans['CREATED_ON'].dt.strftime('%Y-%m-%d %H:%M:%S')
-        df_trans['CREATED_ON'] = pd.to_datetime(df_trans['CREATED_ON'])
-
-        # Ensure all columns are uppercase
-        df_users.columns = [x.upper() for x in df_users.columns]
-        df_accounts.columns = [x.upper() for x in df_accounts.columns]
+        df_trans = normalize_datetime_col(df_trans, 'CREATED_ON')
+        df_trans['DATE_KEY'] = pd.to_datetime(df_trans['CREATED_ON']).dt.date
         df_trans.columns = [x.upper() for x in df_trans.columns]
-        
-        print(f"✅ Transformation complete")
-            
+
+        # FACT_REWARDS  ← new
+        r_c_on = get_col(df_rewards_raw, ['created_on', 'createdOn'])
+        r_uid  = get_col(df_rewards_raw, ['user_id', 'userId'])
+        r_tid  = get_col(df_rewards_raw, ['transaction_id', 'transactionId'])
+        r_pts  = get_col(df_rewards_raw, ['points_earned', 'pointsEarned'])
+
+        df_rewards = df_rewards_raw[['id', r_uid, r_tid, r_pts, r_c_on]].copy()
+        df_rewards = df_rewards.rename(columns={
+            'id': 'REWARD_ID',
+            r_uid: 'USER_ID',
+            r_tid: 'TRANSACTION_ID',
+            r_pts: 'POINTS_EARNED',
+            r_c_on: 'CREATED_ON'
+        })
+        df_rewards = normalize_datetime_col(df_rewards, 'CREATED_ON')
+        df_rewards['DATE_KEY'] = pd.to_datetime(df_rewards['CREATED_ON']).dt.date
+        df_rewards.columns = [x.upper() for x in df_rewards.columns]
+
+        # Uppercase all column names for consistency
+        df_users.columns    = [x.upper() for x in df_users.columns]
+        df_accounts.columns = [x.upper() for x in df_accounts.columns]
+
+        print("Transformation complete")
+
     except Exception as e:
-        print(f"❌ Transformation Error: {e}")
+        print(f"Transformation Error: {e}")
         import traceback
         traceback.print_exc()
         return
 
     print("--- 3. Loading to Snowflake ---")
     try:
-        # FIX: Create a SQLAlchemy Engine instead of a raw DBAPI connection
         sf_engine = create_engine(SNOWFLAKE_URI)
-        
-        # Use a connection context manager
+
         with sf_engine.connect() as ctx:
             print("Uploading DIM_USERS...")
-            df_users.to_sql(
-                "dim_users",  # SQLAlchemy handles lowercase names better or matches your schema
-                ctx,
-                index=False,
-                if_exists='append', # generic chunk handler strategy
-                method=pd_writer
-            )
-            
+            df_users.to_sql("dim_users", ctx, index=False,
+                            if_exists='append', method=pd_writer)
+
             print("Uploading DIM_ACCOUNTS...")
-            df_accounts.to_sql(
-                "dim_accounts",
-                ctx,
-                index=False,
-                if_exists='append',
-                method=pd_writer
-            )
+            df_accounts.to_sql("dim_accounts", ctx, index=False,
+                               if_exists='append', method=pd_writer)
 
             print("Uploading FACT_TRANSACTIONS...")
-            df_trans.to_sql(
-                "fact_transactions",
-                ctx,
-                index=False,
-                if_exists='append',
-                method=pd_writer
-            )
- 
-        print("🚀 SUCCESS: Snowflake Data Warehouse updated!")
+            df_trans.to_sql("fact_transactions", ctx, index=False,
+                            if_exists='append', method=pd_writer)
+
+            print("Uploading FACT_REWARDS...")          # ← new
+            df_rewards.to_sql("fact_rewards", ctx, index=False,
+                              if_exists='append', method=pd_writer)
+
+        print("SUCCESS: Snowflake Data Warehouse updated!")
 
     except Exception as e:
-        print(f"❌ Snowflake Error: {e}")
+        print(f"Snowflake Error: {e}")
         import traceback
         traceback.print_exc()
-        
+
 if __name__ == "__main__":
     print("ETL Script Started...")
     run_etl()

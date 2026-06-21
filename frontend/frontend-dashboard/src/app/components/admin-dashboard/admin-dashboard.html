@@ -14,12 +14,24 @@
 </mat-toolbar>
 
 <div class="dashboard-container">
+
+  <!-- Loading -->
   <div class="center-state" *ngIf="loading">
     <mat-spinner diameter="50"></mat-spinner>
     <p>Querying Snowflake Warehouse...</p>
   </div>
 
+  <!-- Error -->
+  <div class="center-state error-state" *ngIf="!loading && error">
+    <mat-icon class="huge-icon">cloud_off</mat-icon>
+    <h3>{{ error }}</h3>
+    <button mat-flat-button color="primary" (click)="fetchStats()">Retry</button>
+  </div>
+
   <div class="dashboard-content" *ngIf="!loading && !error">
+
+    <!-- ── SECTION 1: Transaction KPIs (existing) ── -->
+    <div class="section-label">Transaction Overview</div>
     <div class="kpi-grid">
       <div class="kpi-card">
         <span class="kpi-label">Success Rate</span>
@@ -43,16 +55,22 @@
       </div>
     </div>
 
+    <!-- ── SECTION 2: Transaction Charts (existing + intact) ── -->
     <div class="visual-grid">
       <mat-card class="chart-card">
-        <mat-card-header><mat-card-title>Transaction Velocity (7 Days)</mat-card-title></mat-card-header>
+        <mat-card-header>
+          <mat-card-title>Transaction Velocity (7 Days)</mat-card-title>
+        </mat-card-header>
         <div class="chart-container">
-          <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="'line'"></canvas>
+          <canvas baseChart [data]="lineChartData"
+                  [options]="lineChartOptions" [type]="'line'"></canvas>
         </div>
       </mat-card>
 
       <mat-card class="info-card">
-        <mat-card-header><mat-card-title>Warehouse Integrity</mat-card-title></mat-card-header>
+        <mat-card-header>
+          <mat-card-title>Warehouse Integrity</mat-card-title>
+        </mat-card-header>
         <mat-card-content>
           <div class="meta-row">
             <mat-icon>account_tree</mat-icon>
@@ -71,5 +89,59 @@
         </mat-card-content>
       </mat-card>
     </div>
+
+    <!-- ── SECTION 3: Reward KPIs (new) ── -->
+    <div class="section-label reward-label">
+      <mat-icon>stars</mat-icon>
+      Rewards Overview
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card reward-kpi">
+        <span class="kpi-label">Total Points Issued</span>
+        <div class="kpi-value gold">{{ stats?.totalPointsIssued | number }}</div>
+        <div class="kpi-sub">All Time</div>
+      </div>
+      <div class="kpi-card reward-kpi">
+        <span class="kpi-label">Rewards Today</span>
+        <div class="kpi-value gold">{{ stats?.rewardsToday }}</div>
+        <div class="kpi-sub">Transactions rewarded</div>
+      </div>
+      <div class="kpi-card reward-kpi">
+        <span class="kpi-label">Avg Points / Txn</span>
+        <div class="kpi-value gold">{{ stats?.avgPointsPerTxn | number:'1.1-1' }}</div>
+        <div class="kpi-sub">Per eligible transfer</div>
+      </div>
+      <div class="kpi-card reward-kpi">
+        <span class="kpi-label">Top Earner</span>
+        <div class="kpi-value gold" style="font-size: 20px">{{ stats?.topRewardUser || '—' }}</div>
+        <div class="kpi-sub">{{ stats?.topRewardUserPoints | number }} pts total</div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 4: Reward Charts (new) ── -->
+    <div class="visual-grid">
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Points by User (Top 5)</mat-card-title>
+          <mat-card-subtitle>Cumulative reward points earned</mat-card-subtitle>
+        </mat-card-header>
+        <div class="chart-container">
+          <canvas baseChart [data]="rewardBarData"
+                  [options]="rewardBarOptions" [type]="'bar'"></canvas>
+        </div>
+      </mat-card>
+
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Points Issued (7 Days)</mat-card-title>
+          <mat-card-subtitle>Daily reward point distribution</mat-card-subtitle>
+        </mat-card-header>
+        <div class="chart-container">
+          <canvas baseChart [data]="rewardTrendData"
+                  [options]="rewardTrendOptions" [type]="'line'"></canvas>
+        </div>
+      </mat-card>
+    </div>
+
   </div>
 </div>
