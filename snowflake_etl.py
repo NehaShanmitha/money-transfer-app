@@ -123,19 +123,22 @@ def run_etl():
         with sf_engine.connect() as ctx:
             print("Uploading DIM_USERS...")
             df_users.to_sql("dim_users", ctx, index=False,
-                            if_exists='append', method=pd_writer)
+                            if_exists='replace', method=pd_writer)
 
             print("Uploading DIM_ACCOUNTS...")
             df_accounts.to_sql("dim_accounts", ctx, index=False,
-                               if_exists='append', method=pd_writer)
+                               if_exists='replace', method=pd_writer)
 
             print("Uploading FACT_TRANSACTIONS...")
+            
             df_trans.to_sql("fact_transactions", ctx, index=False,
-                            if_exists='append', method=pd_writer)
+                            if_exists='replace', method=pd_writer)
 
             print("Uploading FACT_REWARDS...")          # ← new
             df_rewards.to_sql("fact_rewards", ctx, index=False,
-                              if_exists='append', method=pd_writer)
+                              if_exists='replace', method=pd_writer)
+
+            
 
         print("SUCCESS: Snowflake Data Warehouse updated!")
 
